@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -23,11 +22,13 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _controller;
+  late final AnimationController _progressController;
   late final Animation<double> _fade;
   late final Animation<double> _scale;
   late final Animation<Offset> _slide;
+  late final Animation<double> _progress;
   Timer? _navTimer;
 
   @override
@@ -56,6 +57,17 @@ class _SplashScreenState extends State<SplashScreen>
         curve: const Interval(0.15, 1, curve: Curves.easeOutCubic),
       ),
     );
+
+    _progressController = AnimationController(
+      vsync: this,
+      duration: SplashScreen.splashDuration,
+    );
+    _progress = CurvedAnimation(
+      parent: _progressController,
+      curve: Curves.easeInOutCubic,
+    );
+    _progressController.forward();
+
     _navTimer = Timer(SplashScreen.splashDuration, _goNext);
   }
 
@@ -74,6 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _navTimer?.cancel();
+    _progressController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -110,91 +123,44 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(bottom: 48.h),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const _BouncingDots(color: AppColors.dashboardPrimary),
-                    SizedBox(height: 18.h),
-                    Text(
-                      'Loading…',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w700,
-                        color:
-                            AppColors.dashboardPrimary.withValues(alpha: 0.65),
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
+                padding: EdgeInsets.fromLTRB(40.w, 0, 40.w, 48.h),
+                child: AnimatedBuilder(
+                  animation: _progress,
+                  builder: (context, _) {
+                    final pct = (_progress.value * 100).clamp(0, 100).round();
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: _progress.value,
+                            minHeight: 6.h,
+                            backgroundColor: AppColors.dashboardPrimary
+                                .withValues(alpha: 0.12),
+                            color: AppColors.dashboardPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+                        Text(
+                          '$pct%',
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.dashboardPrimary
+                                .withValues(alpha: 0.75),
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class _BouncingDots extends StatefulWidget {
-  const _BouncingDots({required this.color});
-
-  final Color color;
-
-  @override
-  State<_BouncingDots> createState() => _BouncingDotsState();
-}
-
-class _BouncingDotsState extends State<_BouncingDots>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (i) {
-        return AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) {
-            final progress = (_controller.value + i * 0.16) % 1.0;
-            final lift = math.sin(progress * math.pi).clamp(0.0, 1.0);
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: 5.w),
-              child: Transform.translate(
-                offset: Offset(0, -10.h * lift),
-                child: Opacity(
-                  opacity: 0.55 + 0.45 * lift,
-                  child: Container(
-                    width: 10.r,
-                    height: 10.r,
-                    decoration: BoxDecoration(
-                      color: widget.color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      }),
     );
   }
 }

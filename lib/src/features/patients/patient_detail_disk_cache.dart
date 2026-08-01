@@ -83,6 +83,7 @@ class PatientDetailDiskCache {
         'isOnMedication': r.isOnMedication,
         'complianceLevelId': r.complianceLevelId,
         'complianceLevelName': r.complianceLevelName,
+        'createdAt': r.createdAt?.toIso8601String(),
       };
 
   static Map<String, dynamic> _surgicalToJson(PatientSurgicalHistoryRow r) => {
@@ -94,6 +95,7 @@ class PatientDetailDiskCache {
         'approxMonth': r.approxMonth,
         'approxYear': r.approxYear,
         'notes': r.notes,
+        'createdAt': r.createdAt?.toIso8601String(),
       };
 
   static Map<String, dynamic> _drugToJson(PatientDrugHistoryRow r) => {
@@ -115,6 +117,7 @@ class PatientDetailDiskCache {
         'tobaccoQuantityPerDay': b.tobaccoQuantityPerDay,
         'tobaccoDurationStart': b.tobaccoDurationStart?.toIso8601String(),
         'tobaccoDurationEnd': b.tobaccoDurationEnd?.toIso8601String(),
+        'createdAt': b.createdAt?.toIso8601String(),
       };
 
   static Map<String, dynamic> _lifeStyleToJson(PatientLifeStyle l) => {
@@ -129,5 +132,6 @@ class PatientDetailDiskCache {
         'exerciseLevelName': l.exerciseLevelName,
         'alcoholUse': l.alcoholUse,
         'highSaltDiet': l.highSaltDiet,
+        'createdAt': l.createdAt?.toIso8601String(),
       };
 }

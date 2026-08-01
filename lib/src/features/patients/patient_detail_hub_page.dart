@@ -6,6 +6,7 @@ import 'package:doctor_app/src/features/home/health_worker_dashboard_models.dart
 import 'package:doctor_app/src/features/patients/patient_detail_profile_banner.dart';
 import 'package:doctor_app/src/features/patients/patient_detail_tab_view.dart';
 import 'package:doctor_app/src/features/patients/patient_prescription_history_page.dart';
+import 'package:doctor_app/src/features/patients/presenting_complaint_page.dart';
 import 'package:doctor_app/src/features/shell/tabs/visit_tab_page.dart';
 
 /// Patient overview — profile at top + one elevated card per history section.
@@ -85,10 +86,30 @@ class PatientDetailHubPage extends StatelessWidget {
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.fromLTRB(18.w, 20.h, 18.w, 28.h),
-              itemCount: PatientDetailSection.values.length + 1,
+              itemCount: PatientDetailSection.values.length + 2,
               separatorBuilder: (_, __) => SizedBox(height: 12.h),
               itemBuilder: (context, index) {
-                if (index == PatientDetailSection.values.length) {
+                final sectionCount = PatientDetailSection.values.length;
+                if (index == sectionCount) {
+                  return _SectionHubCard(
+                    sectionLabel: 'Presenting Complaint',
+                    sectionSubtitle:
+                        'Draft for next visit (saved on this device)',
+                    sectionIcon: Icons.chat_bubble_outline_rounded,
+                    sectionAccent: AppColors.dashboardPrimary,
+                    onTap: () {
+                      Navigator.of(context).push<void>(
+                        MaterialPageRoute<void>(
+                          builder: (ctx) => PresentingComplaintPage(
+                            patientId: summary.patientId,
+                            patientName: summary.fullName,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+                if (index == sectionCount + 1) {
                   return _SectionHubCard(
                     sectionLabel: 'Prescription History',
                     sectionSubtitle:

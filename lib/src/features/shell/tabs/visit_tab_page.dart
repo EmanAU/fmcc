@@ -17,9 +17,98 @@ import 'package:doctor_app/src/features/home/home_dashboard_controller.dart';
 import 'package:doctor_app/src/features/patients/patient_directory_list_card.dart';
 import 'package:doctor_app/src/features/patients/patient_api.dart';
 import 'package:doctor_app/src/features/patients/patient_api_models.dart';
+import 'package:doctor_app/src/features/patients/presenting_complaint_cache.dart';
+import 'package:doctor_app/src/features/patients/presenting_complaint_page.dart';
 import 'package:doctor_app/src/features/visits/visit_instructions_bottom_sheet.dart';
 import 'package:doctor_app/src/features/visits/visit_instructions_cache.dart';
 import 'package:doctor_app/src/features/visits/visit_instructions_prefs.dart';
+
+/// Red banner: missing presenting complaint — open complaint page.
+void _showMissingPresentingComplaintBanner(
+  BuildContext context, {
+  required VisitPatientSeed seed,
+}) {
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(
+    SnackBar(
+      duration: const Duration(seconds: 15),
+      backgroundColor: AppColors.danger,
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.fromLTRB(12.w, 0, 12.w, 16.h),
+      padding: EdgeInsets.fromLTRB(14.w, 10.h, 10.w, 14.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: Alignment.topRight,
+            child: Material(
+              color: Colors.white.withValues(alpha: 0.22),
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: messenger.hideCurrentSnackBar,
+                child: Padding(
+                  padding: EdgeInsets.all(5.r),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 16.sp,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Text(
+            'Please add Presenting Complaint in patient profile first.',
+            style: TextStyle(
+              fontSize: 15.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              height: 1.35,
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: GestureDetector(
+              onTap: () {
+                messenger.hideCurrentSnackBar();
+                _openPresentingComplaintFromSeed(context, seed);
+              },
+              child: Text(
+                'Add presenting complaint →',
+                style: TextStyle(
+                  fontSize: 14.5.sp,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  decoration: TextDecoration.underline,
+                  decorationColor: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _openPresentingComplaintFromSeed(
+  BuildContext context,
+  VisitPatientSeed seed,
+) {
+  Navigator.of(context).push<void>(
+    MaterialPageRoute<void>(
+      builder: (ctx) => PresentingComplaintPage(
+        patientId: seed.apiPatientId,
+        patientName: seed.name,
+      ),
+    ),
+  );
+}
 
 /// Visual severity tier for the auto-recommended visit action.
 enum _RecommendedActionSeverity { controlled, uncontrolled, severe, emergency }
@@ -94,7 +183,7 @@ class _VisitTabPageState extends State<VisitTabPage> {
       unawaited(_prefetchInstructions());
       final seed = widget.initialPatient;
       if (seed != null) {
-        _setSelectedPatient(seed);
+        unawaited(_openSeedIfComplaintReady(seed));
       }
     });
   }
@@ -105,10 +194,27 @@ class _VisitTabPageState extends State<VisitTabPage> {
     await context.read<VisitInstructionsCache>().ensureLoaded(session);
   }
 
+  Future<bool> _requirePresentingComplaint(VisitPatientSeed seed) async {
+    final complaint = await PresentingComplaintCache.load(seed.apiPatientId);
+    if (complaint != null && complaint.isNotEmpty) return true;
+    if (!mounted) return false;
+    _showMissingPresentingComplaintBanner(context, seed: seed);
+    return false;
+  }
+
+  Future<void> _openSeedIfComplaintReady(VisitPatientSeed seed) async {
+    if (!await _requirePresentingComplaint(seed)) return;
+    if (!mounted) return;
+    _setSelectedPatient(seed);
+  }
+
   Future<void> _startVisitWithInstructions(VisitPatientSeed seed) async {
     if (_startingVisit || !mounted) return;
     _startingVisit = true;
     try {
+      if (!await _requirePresentingComplaint(seed)) return;
+      if (!mounted) return;
+
       if (!seed.showInstructions) {
         _setSelectedPatient(seed);
         return;
@@ -119,6 +225,7 @@ class _VisitTabPageState extends State<VisitTabPage> {
       await cache.ensureLoaded(session);
       await cache.prefetchImages();
 
+      if (!mounted) return;
       final skip = await VisitInstructionsPrefs.shouldSkip();
       if (!skip && cache.hasInstructions && mounted) {
         final dontShowAgain = await showVisitInstructionsBottomSheet(
@@ -159,7 +266,7 @@ class _VisitTabPageState extends State<VisitTabPage> {
     if (next != null &&
         (next.apiPatientId != oldWidget.initialPatient?.apiPatientId ||
             widget.openRequestId != oldWidget.openRequestId)) {
-      _setSelectedPatient(next);
+      unawaited(_openSeedIfComplaintReady(next));
     }
   }
 
@@ -563,9 +670,7 @@ class _VisitListKindToggle extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: active
-          ? AppColors.dashboardPrimary
-          : Colors.transparent,
+      color: active ? AppColors.dashboardPrimary : Colors.transparent,
       borderRadius: BorderRadius.circular(12.r),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -632,9 +737,7 @@ class _VisitPatientPickerEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = useFollowUps
-        ? 'No follow-ups right now'
-        : 'No patients yet';
+    final title = useFollowUps ? 'No follow-ups right now' : 'No patients yet';
     final body = useFollowUps
         ? 'Switch to All patients to log a visit for anyone in your directory.'
         : 'Register a patient from the + button, or open Home — your list loads automatically.';
@@ -963,7 +1066,6 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
   final _pulseController = TextEditingController();
   final _temperatureController = TextEditingController();
   final _respiratoryRateController = TextEditingController();
-  final _reasonController = TextEditingController();
   final _weightConcernsController = TextEditingController();
   final _adherenceNoteController = TextEditingController();
 
@@ -1241,7 +1343,6 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
     _pulseController.dispose();
     _temperatureController.dispose();
     _respiratoryRateController.dispose();
-    _reasonController.dispose();
     _weightConcernsController.dispose();
     _adherenceNoteController.dispose();
     super.dispose();
@@ -1325,6 +1426,7 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
   Map<String, dynamic> _buildVisitBody({
     required String patientId,
     required String healthWorkerId,
+    required String reasonForVisit,
   }) {
     final s1 = _parseIntCtl(_systolic1Controller);
     final d1 = _parseIntCtl(_diastolic1Controller);
@@ -1340,6 +1442,7 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
       'visitTypeId': _visitTypeId ?? 0,
       'isFollowUpVisit': _isFollowUpVisit,
       'dangerSigns': _dangerSigns,
+      'reasonForVisit': reasonForVisit,
       'symptomIds': _symptomAnswers.entries
           .where((e) => e.value)
           .map((e) => e.key)
@@ -1359,9 +1462,6 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
           )
           .toList();
     }
-
-    final reason = _reasonController.text.trim();
-    if (reason.isNotEmpty) map['reasonForVisit'] = reason;
 
     if (s1 != null) map['systolicBP1'] = s1;
     if (d1 != null) map['diastolicBP1'] = d1;
@@ -1473,11 +1573,26 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
       return;
     }
 
+    final reason = await PresentingComplaintCache.load(pid);
+    if (reason == null || reason.isEmpty) {
+      if (!mounted) return;
+      _showMissingPresentingComplaintBanner(
+        context,
+        seed: widget.patient,
+      );
+      return;
+    }
+
     setState(() => _submitting = true);
     try {
       final api = _patientApi!;
-      final body = _buildVisitBody(patientId: pid, healthWorkerId: hwId);
+      final body = _buildVisitBody(
+        patientId: pid,
+        healthWorkerId: hwId,
+        reasonForVisit: reason,
+      );
       await api.createVisit(body: body, bearerToken: token);
+      await PresentingComplaintCache.clear(pid);
 
       if (!mounted) return;
       _toast('Visit saved for ${widget.patient.name}.');
@@ -2374,19 +2489,6 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (!_refsLoading) ...[
-                        _label('Presenting Complaint'),
-                        TextFormField(
-                          controller: _reasonController,
-                          maxLines: 2,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          decoration: _fieldDecoration(),
-                        ),
-                        SizedBox(height: 18.h),
-                      ],
                       _visitVitalsRecordCard(),
                       SizedBox(height: 12.h),
                       _dangerSignsToggle(),

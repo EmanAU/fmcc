@@ -173,6 +173,7 @@ class PatientMedicalHistoryRow {
     required this.isOnMedication,
     this.complianceLevelId,
     required this.complianceLevelName,
+    this.createdAt,
   });
 
   final int id;
@@ -184,6 +185,7 @@ class PatientMedicalHistoryRow {
   final bool isOnMedication;
   final int? complianceLevelId;
   final String complianceLevelName;
+  final DateTime? createdAt;
 
   bool get isCustomCondition => customConditionName.trim().isNotEmpty;
 
@@ -204,6 +206,7 @@ class PatientMedicalHistoryRow {
     int? complianceLevelId,
     String? complianceLevelName,
     bool clearComplianceLevel = false,
+    DateTime? createdAt,
   }) {
     return PatientMedicalHistoryRow(
       id: id ?? this.id,
@@ -221,6 +224,7 @@ class PatientMedicalHistoryRow {
       complianceLevelName: clearComplianceLevel
           ? ''
           : (complianceLevelName ?? this.complianceLevelName),
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -241,6 +245,7 @@ class PatientMedicalHistoryRow {
       complianceLevelId: _readInt(m, 'complianceLevelId', 'ComplianceLevelId'),
       complianceLevelName:
           _readString(m, 'complianceLevelName', 'ComplianceLevelName') ?? '',
+      createdAt: _readDateTime(m, 'createdAt', 'CreatedAt'),
     );
   }
 }
@@ -255,6 +260,7 @@ class PatientSurgicalHistoryRow {
     this.approxMonth,
     this.approxYear,
     required this.notes,
+    this.createdAt,
   });
 
   final int id;
@@ -265,6 +271,7 @@ class PatientSurgicalHistoryRow {
   final int? approxMonth;
   final int? approxYear;
   final String notes;
+  final DateTime? createdAt;
 
   bool get isCustomProcedure => customProcedureName.trim().isNotEmpty;
 
@@ -283,6 +290,7 @@ class PatientSurgicalHistoryRow {
     int? approxMonth,
     int? approxYear,
     String? notes,
+    DateTime? createdAt,
   }) {
     return PatientSurgicalHistoryRow(
       id: id ?? this.id,
@@ -295,6 +303,7 @@ class PatientSurgicalHistoryRow {
       approxMonth: approxMonth ?? this.approxMonth,
       approxYear: approxYear ?? this.approxYear,
       notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -313,6 +322,7 @@ class PatientSurgicalHistoryRow {
       approxMonth: _readInt(m, 'approxMonth', 'ApproxMonth'),
       approxYear: _readInt(m, 'approxYear', 'ApproxYear'),
       notes: _readString(m, 'notes', 'Notes') ?? '',
+      createdAt: _readDateTime(m, 'createdAt', 'CreatedAt'),
     );
   }
 }
@@ -760,6 +770,7 @@ class PatientBaselineLifestyle {
     this.tobaccoQuantityPerDay,
     this.tobaccoDurationStart,
     this.tobaccoDurationEnd,
+    this.createdAt,
   });
 
   final String patientId;
@@ -769,6 +780,7 @@ class PatientBaselineLifestyle {
   final int? tobaccoQuantityPerDay;
   final DateTime? tobaccoDurationStart;
   final DateTime? tobaccoDurationEnd;
+  final DateTime? createdAt;
 
   static PatientBaselineLifestyle? tryFromJson(dynamic json) {
     if (json is! Map) return null;
@@ -788,6 +800,7 @@ class PatientBaselineLifestyle {
           _readDateTime(m, 'tobaccoDurationStart', 'TobaccoDurationStart'),
       tobaccoDurationEnd:
           _readDateTime(m, 'tobaccoDurationEnd', 'TobaccoDurationEnd'),
+      createdAt: _readDateTime(m, 'createdAt', 'CreatedAt'),
     );
   }
 }
@@ -806,6 +819,7 @@ class PatientLifeStyle {
     this.exerciseLevelName = '',
     required this.alcoholUse,
     required this.highSaltDiet,
+    this.createdAt,
   });
 
   final String patientId;
@@ -819,6 +833,7 @@ class PatientLifeStyle {
   final String exerciseLevelName;
   final bool alcoholUse;
   final bool highSaltDiet;
+  final DateTime? createdAt;
 
   static PatientLifeStyle? tryFromJson(dynamic json) {
     if (json is! Map) return null;
@@ -838,6 +853,7 @@ class PatientLifeStyle {
           _readString(m, 'exerciseLevelName', 'ExerciseLevelName') ?? '',
       alcoholUse: _readBool(m, 'alcoholUse', 'AlcoholUse') ?? false,
       highSaltDiet: _readBool(m, 'highSaltDiet', 'HighSaltDiet') ?? false,
+      createdAt: _readDateTime(m, 'createdAt', 'CreatedAt'),
     );
   }
 }

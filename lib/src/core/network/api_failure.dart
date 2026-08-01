@@ -33,4 +33,3 @@ class ValidationFailure extends ApiFailure {
 class UnknownFailure extends ApiFailure {
   const UnknownFailure(super.message);
 }
-

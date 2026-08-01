@@ -849,6 +849,7 @@ class _PatientDetailTabViewState extends State<PatientDetailTabView> {
       tobaccoDurationStart:
           remote.tobaccoDurationStart ?? local.tobaccoDurationStart,
       tobaccoDurationEnd: remote.tobaccoDurationEnd ?? local.tobaccoDurationEnd,
+      createdAt: remote.createdAt ?? local.createdAt,
     );
   }
 
