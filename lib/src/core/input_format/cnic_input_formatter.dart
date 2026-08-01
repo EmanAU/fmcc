@@ -1,13 +1,9 @@
 import 'package:flutter/services.dart';
 
-/// Pakistani CNIC mask: `#####-#######-#` (13 digits → **15 characters** with dashes).
-///
-/// Backend validates exact length 15 including dashes.
 class CnicInputFormatter extends TextInputFormatter {
   static const int maxDigits = 13;
 
-  static String digitsOnly(String value) =>
-      value.replaceAll(RegExp(r'\D'), '');
+  static String digitsOnly(String value) => value.replaceAll(RegExp(r'\D'), '');
 
   /// Masked value for API body (`cnic` field): **always send this**, not [digitsOnly].
   static String forApi(String fieldOrRaw) => formatFromRaw(fieldOrRaw);
@@ -16,8 +12,7 @@ class CnicInputFormatter extends TextInputFormatter {
   static String formatFromRaw(String raw) {
     final d = digitsOnly(raw);
     if (d.isEmpty) return '';
-    final clipped =
-        d.length > maxDigits ? d.substring(0, maxDigits) : d;
+    final clipped = d.length > maxDigits ? d.substring(0, maxDigits) : d;
     return _masked(clipped);
   }
 

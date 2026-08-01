@@ -86,53 +86,50 @@ class PatientDetailHubPage extends StatelessWidget {
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.fromLTRB(18.w, 20.h, 18.w, 28.h),
-              itemCount: PatientDetailSection.values.length + 2,
+              itemCount: _hubItems.length,
               separatorBuilder: (_, __) => SizedBox(height: 12.h),
               itemBuilder: (context, index) {
-                final sectionCount = PatientDetailSection.values.length;
-                if (index == sectionCount) {
-                  return _SectionHubCard(
-                    sectionLabel: 'Presenting Complaint',
-                    sectionSubtitle:
-                        'Draft for next visit (saved on this device)',
-                    sectionIcon: Icons.chat_bubble_outline_rounded,
-                    sectionAccent: AppColors.dashboardPrimary,
-                    onTap: () {
-                      Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(
-                          builder: (ctx) => PresentingComplaintPage(
-                            patientId: summary.patientId,
-                            patientName: summary.fullName,
+                final item = _hubItems[index];
+                return switch (item) {
+                  _HubSectionItem(:final section) => _SectionHubCard(
+                      section: section,
+                      onTap: () => _openSection(context, section),
+                    ),
+                  _HubPresentingComplaint() => _SectionHubCard(
+                      sectionLabel: 'Presenting Complaint',
+                      sectionSubtitle:
+                          'Draft for next visit (saved on this device)',
+                      sectionIcon: Icons.chat_bubble_outline_rounded,
+                      sectionAccent: AppColors.dashboardPrimary,
+                      onTap: () {
+                        Navigator.of(context).push<void>(
+                          MaterialPageRoute<void>(
+                            builder: (ctx) => PresentingComplaintPage(
+                              patientId: summary.patientId,
+                              patientName: summary.fullName,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                }
-                if (index == sectionCount + 1) {
-                  return _SectionHubCard(
-                    sectionLabel: 'Prescription History',
-                    sectionSubtitle:
-                        'Read-only doctor prescriptions for this patient',
-                    sectionIcon: Icons.medication_liquid_outlined,
-                    sectionAccent: AppColors.dashboardActionRed,
-                    onTap: () {
-                      Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(
-                          builder: (ctx) => PatientPrescriptionHistoryPage(
-                            patientId: summary.patientId,
-                            patientName: summary.fullName,
+                        );
+                      },
+                    ),
+                  _HubPrescriptionHistory() => _SectionHubCard(
+                      sectionLabel: 'Prescription History',
+                      sectionSubtitle:
+                          'Read-only doctor prescriptions for this patient',
+                      sectionIcon: Icons.medication_liquid_outlined,
+                      sectionAccent: AppColors.dashboardActionRed,
+                      onTap: () {
+                        Navigator.of(context).push<void>(
+                          MaterialPageRoute<void>(
+                            builder: (ctx) => PatientPrescriptionHistoryPage(
+                              patientId: summary.patientId,
+                              patientName: summary.fullName,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                }
-                final section = PatientDetailSection.values[index];
-                return _SectionHubCard(
-                  section: section,
-                  onTap: () => _openSection(context, section),
-                );
+                        );
+                      },
+                    ),
+                };
               },
             ),
           ),
@@ -140,8 +137,35 @@ class PatientDetailHubPage extends StatelessWidget {
       ),
     );
   }
+
+  /// Personal Info → Presenting Complaint → remaining sections → Prescriptions.
+  static const _hubItems = <_HubItem>[
+    _HubSectionItem(PatientDetailSection.personalInfo),
+    _HubPresentingComplaint(),
+    _HubSectionItem(PatientDetailSection.medicalHistory),
+    _HubSectionItem(PatientDetailSection.familyHistory),
+    _HubSectionItem(PatientDetailSection.baselineLifestyle),
+    _HubSectionItem(PatientDetailSection.visitHistory),
+    _HubPrescriptionHistory(),
+  ];
 }
 
+sealed class _HubItem {
+  const _HubItem();
+}
+
+final class _HubSectionItem extends _HubItem {
+  const _HubSectionItem(this.section);
+  final PatientDetailSection section;
+}
+
+final class _HubPresentingComplaint extends _HubItem {
+  const _HubPresentingComplaint();
+}
+
+final class _HubPrescriptionHistory extends _HubItem {
+  const _HubPrescriptionHistory();
+}
 class _SectionHubCard extends StatelessWidget {
   const _SectionHubCard({
     this.section,

@@ -1065,8 +1065,6 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
   final _pulseController = TextEditingController();
   final _temperatureController = TextEditingController();
   final _respiratoryRateController = TextEditingController();
-  final _weightConcernsController = TextEditingController();
-  final _adherenceNoteController = TextEditingController();
 
   ReferenceApi? _referenceApi;
   PatientApi? _patientApi;
@@ -1078,12 +1076,10 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
   List<NamedReferenceItem> _visitStatuses = const [];
   List<NamedReferenceItem> _visitActions = const [];
   List<NamedReferenceItem> _symptoms = const [];
-  List<NamedReferenceItem> _physicalLevels = const [];
 
   int? _visitTypeId;
   int? _visitStatusId;
   int? _visitActionId;
-  int? _physicalActivityLevelId;
 
   final Map<int, bool> _symptomAnswers = {};
 
@@ -1342,8 +1338,6 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
     _pulseController.dispose();
     _temperatureController.dispose();
     _respiratoryRateController.dispose();
-    _weightConcernsController.dispose();
-    _adherenceNoteController.dispose();
     super.dispose();
   }
 
@@ -1372,7 +1366,6 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
         ref.getVisitStatuses(bearerToken: token),
         ref.getVisitActions(bearerToken: token),
         ref.getSymptoms(bearerToken: token),
-        ref.getPhysicalActivityLevels(bearerToken: token),
       ]);
 
       if (!mounted) return;
@@ -1381,11 +1374,9 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
         _visitStatuses = results[1];
         _visitActions = results[2];
         _symptoms = results[3];
-        _physicalLevels = results[4];
 
         _visitTypeId = _firstPositiveId(_visitTypes);
         _visitStatusId = _firstPositiveId(_visitStatuses);
-        _physicalActivityLevelId = _firstPositiveId(_physicalLevels);
         _visitActionId =
             _recommendedActionId() ?? _firstPositiveId(_visitActions);
       });
@@ -1481,15 +1472,10 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
     if (_visitStatusId != null && _visitStatusId! > 0) {
       map['visitStatusId'] = _visitStatusId;
     }
-    if (_physicalActivityLevelId != null && _physicalActivityLevelId! > 0) {
-      map['physicalActivityLevelId'] = _physicalActivityLevelId;
-    }
-
-    final w = _weightConcernsController.text.trim();
-    if (w.isNotEmpty) map['weightConcerns'] = w;
-
-    final ad = _adherenceNoteController.text.trim();
-    if (ad.isNotEmpty) map['medicalAdherenceNote'] = ad;
+    // Lifestyle fields removed from UI — always send null.
+    map['physicalActivityLevelId'] = null;
+    map['weightConcerns'] = null;
+    map['medicalAdherenceNote'] = null;
 
     if (_nextVisitDate != null) {
       // Anchor at local noon so the calendar day never flips into the
@@ -2543,37 +2529,6 @@ class _VisitAssessmentViewState extends State<_VisitAssessmentView> {
                             .where((s) => s.id > 0)
                             .map(_symptomYesNoRow),
                       ],
-                      SizedBox(height: 22.h),
-                      _sectionTitle('LIFESTYLE (VISITUpsert)'),
-                      if (!_refsLoading)
-                        _dropdownInt(
-                          label: 'Physical activity level',
-                          value: _physicalActivityLevelId,
-                          items: _physicalLevels,
-                          onChanged: (v) =>
-                              setState(() => _physicalActivityLevelId = v),
-                        ),
-                      SizedBox(height: 8.h),
-                      _label('Weight concerns'),
-                      TextFormField(
-                        controller: _weightConcernsController,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: _fieldDecoration(),
-                      ),
-                      SizedBox(height: 12.h),
-                      _label('Medical adherence note'),
-                      TextFormField(
-                        controller: _adherenceNoteController,
-                        maxLines: 2,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: _fieldDecoration(),
-                      ),
                       SizedBox(height: 24.h),
                       if (_refsLoading)
                         Padding(
