@@ -50,17 +50,6 @@ class RoleScreen extends StatelessWidget {
                     UserRole.ladyHealthWorker,
                   ),
                 ),
-                SizedBox(height: 14.h),
-                _RoleTile(
-                  icon: Icons.medical_services_rounded,
-                  iconTint: AppColors.dashboardPrimaryDark,
-                  titleEn: 'Doctor',
-                  titleUr: 'ڈاکٹر',
-                  onTap: () => _selectRole(
-                    context,
-                    UserRole.doctor,
-                  ),
-                ),
                 const Spacer(),
               ],
             ),
