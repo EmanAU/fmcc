@@ -23,7 +23,6 @@ import 'package:doctor_app/src/features/visits/visit_instructions_bottom_sheet.d
 import 'package:doctor_app/src/features/visits/visit_instructions_cache.dart';
 import 'package:doctor_app/src/features/visits/visit_instructions_prefs.dart';
 
-/// Red banner: missing presenting complaint — open complaint page.
 void _showMissingPresentingComplaintBanner(
   BuildContext context, {
   required VisitPatientSeed seed,

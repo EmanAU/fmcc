@@ -1626,6 +1626,11 @@ class _PatientDetailTabViewState extends State<PatientDetailTabView> {
         '${date.year}';
   }
 
+  String _formatHistoryCreatedAt(DateTime? createdAt) {
+    if (createdAt == null) return '';
+    return _displayDate(createdAt.toLocal());
+  }
+
   Map<String, dynamic> _buildBaselineLifestyleBody(String patientId) {
     final body = <String, dynamic>{
       'patientId': patientId,
@@ -3594,9 +3599,44 @@ class _PatientDetailTabViewState extends State<PatientDetailTabView> {
     required VoidCallback onUpdate,
     required VoidCallback onDelete,
     bool showActions = true,
+    DateTime? createdAt,
   }) {
     final displayTitle =
         title.trim().isNotEmpty ? title.trim() : (isDraft ? 'New entry' : '—');
+    final createdLabel = _formatHistoryCreatedAt(createdAt);
+    final trailing = Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (createdLabel.isNotEmpty)
+          Text(
+            createdLabel,
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              height: 1.2,
+            ),
+          ),
+        if (showActions) ...[
+          if (createdLabel.isNotEmpty) SizedBox(height: 4.h),
+          if (isEditing)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _historyEntryUpdateButton(
+                  onPressed: onUpdate,
+                  label: 'View',
+                ),
+                _historyEntryMoreMenu(onDelete: onDelete),
+              ],
+            )
+          else
+            _historyEntryViewActions(onUpdate: onUpdate, onDelete: onDelete),
+        ],
+      ],
+    );
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -3628,20 +3668,10 @@ class _PatientDetailTabViewState extends State<PatientDetailTabView> {
             ),
           ),
         ),
-        if (showActions)
-          if (isEditing)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _historyEntryUpdateButton(
-                  onPressed: onUpdate,
-                  label: 'View',
-                ),
-                _historyEntryMoreMenu(onDelete: onDelete),
-              ],
-            )
-          else
-            _historyEntryViewActions(onUpdate: onUpdate, onDelete: onDelete),
+        if (createdLabel.isNotEmpty || showActions) ...[
+          SizedBox(width: 8.w),
+          trailing,
+        ],
       ],
     );
   }
@@ -3924,6 +3954,7 @@ class _PatientDetailTabViewState extends State<PatientDetailTabView> {
                             isDraft: isDraft,
                             isEditing: isEditing,
                             showActions: _sectionEditable,
+                            createdAt: row.createdAt,
                             onUpdate: () => setState(() {
                               if (_editingChronicIds.contains(row.id)) {
                                 _editingChronicIds.remove(row.id);
@@ -4166,6 +4197,7 @@ class _PatientDetailTabViewState extends State<PatientDetailTabView> {
                             isDraft: isDraft,
                             isEditing: isEditing,
                             showActions: _sectionEditable,
+                            createdAt: s.createdAt,
                             onUpdate: () => setState(() {
                               if (_editingSurgicalIds.contains(s.id)) {
                                 _editingSurgicalIds.remove(s.id);
@@ -4348,6 +4380,7 @@ class _PatientDetailTabViewState extends State<PatientDetailTabView> {
                             isDraft: isDraft,
                             isEditing: isEditing,
                             showActions: _sectionEditable,
+                            createdAt: d.createdAt,
                             onUpdate: () => setState(() {
                               if (_editingDrugIds.contains(d.id)) {
                                 _editingDrugIds.remove(d.id);

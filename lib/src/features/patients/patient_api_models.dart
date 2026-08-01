@@ -337,6 +337,7 @@ class PatientDrugHistoryRow {
     this.adherenceLevelId,
     required this.adherenceLevelName,
     required this.sideEffects,
+    this.createdAt,
   });
 
   final int id;
@@ -347,6 +348,7 @@ class PatientDrugHistoryRow {
   final int? adherenceLevelId;
   final String adherenceLevelName;
   final String sideEffects;
+  final DateTime? createdAt;
 
   bool get isCustomCategory => customMedicineCategoryName.trim().isNotEmpty;
 
@@ -366,6 +368,7 @@ class PatientDrugHistoryRow {
     String? adherenceLevelName,
     String? sideEffects,
     bool clearAdherenceLevel = false,
+    DateTime? createdAt,
   }) {
     return PatientDrugHistoryRow(
       id: id ?? this.id,
@@ -382,6 +385,7 @@ class PatientDrugHistoryRow {
           ? ''
           : (adherenceLevelName ?? this.adherenceLevelName),
       sideEffects: sideEffects ?? this.sideEffects,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -409,6 +413,7 @@ class PatientDrugHistoryRow {
       adherenceLevelName:
           _readString(m, 'adherenceLevelName', 'AdherenceLevelName') ?? '',
       sideEffects: _readString(m, 'sideEffects', 'SideEffects') ?? '',
+      createdAt: _readDateTime(m, 'createdAt', 'CreatedAt'),
     );
   }
 }

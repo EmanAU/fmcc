@@ -107,6 +107,7 @@ class PatientDetailDiskCache {
         'adherenceLevelId': r.adherenceLevelId,
         'adherenceLevelName': r.adherenceLevelName,
         'sideEffects': r.sideEffects,
+        'createdAt': r.createdAt?.toIso8601String(),
       };
 
   static Map<String, dynamic> _baselineToJson(PatientBaselineLifestyle b) => {
