@@ -1,8 +1,8 @@
 {
   "java.configuration.updateBuildConfiguration": "interactive",
-  "task.allowAutomaticTasks": true,
   "debug.openDebug": "neverOpen",
   "terminal.integrated.inheritEnv": false,
+  "task.allowAutomaticTasks": true,
   "tasks": {
     "label": "lint on open",
     "type": "shell",
